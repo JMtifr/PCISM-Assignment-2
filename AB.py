@@ -13,7 +13,7 @@ from astroquery.simbad import Simbad
 from astroquery.mast import Observations
 from astropy import visualization
 
-#111111111111111111111111111 Extinction curve  111111111111111111111111111111111111111111111111111
+# ================= accuaring spectrum data =======================================================
 # Data downloaded to folder /home/jibak/mastDownload/IUE
 
 # reading HDE 251204 data (UV spectrum)
@@ -67,21 +67,20 @@ Uflux_HDE251204 = zeroflux_U * 10.**(-0.4*Umag_HDE251204)
 Bflux_HDE251204 = zeroflux_B * 10.**(-0.4*Bmag_HDE251204)
 Vflux_HDE251204 = zeroflux_V * 10.**(-0.4*Vmag_HDE251204)
 #--------------------------------------------------
+#======================================================================================================
 
-#======= plotting data =====================
-
-with visualization.quantity_support():
- pt.semilogy(wav_UV_1,UVflux_1,'b',label='SWP HDE 251204')
- pt.semilogy(wav_UV_2,UVflux_2,'r',label = 'LWR HDE 251204')
- pt.semilogy(wav_UV_3,UVflux_3,'g',label= 'SWP HD 63922')
- pt.semilogy(wav_UV_4,UVflux_4,'y',label = 'LWR HD 63922')
- pt.semilogy(wav_V,Vflux_HD63922,'mo',label='U V B HD63922')
- pt.semilogy(wav_B,Bflux_HD63922,'mo')
- pt.semilogy(wav_U,Uflux_HD63922,'mo')
- pt.semilogy(wav_V,Vflux_HDE251204,'co',label='U B V HDE251204')
- pt.semilogy(wav_B,Bflux_HDE251204,'co')
- pt.semilogy(wav_U,Uflux_HDE251204,'co')
- pt.xticks(np.arange(1000,6000,500))
- pt.title('rho Oph')
- pt.legend()
- pt.show()
+#11111111111111111111        Extinction curve      111111111111111111111111111111111111111111111
+Evb=0.71 # fromthe paper
+#Rv=3.1 guessed
+E_swp=-2.5*(np.log(UVflux_1.value/UVflux_3.value))/Evb/np.log(10)-(Vmag_HDE251204-Vmag_HD63922)/Evb
+E_lwr=-2.5*np.log(UVflux_2.value[:562]/UVflux_4.value[:562])/Evb/np.log(10)-(Vmag_HDE251204-Vmag_HD63922)/Evb
+pt.plot(2E4/(wav_UV_2.value[:562]+wav_UV_4.value[:562]),E_lwr,'g-',label="LWR")
+pt.plot(2E4/(wav_UV_1.value+wav_UV_3.value),E_swp,'y-',label="SWP")
+wav = np.arange(0.1, 3.0, 0.001)*u.micron
+ext=CCM89(Rv=3.1)
+pt.plot(1/wav, (ext(wav)-1)*3.1,'r--',label="CCM89")
+pt.xlabel("$\lambda^{-1} (\mu^{-1})$")
+pt.ylabel("$\dfrac{E(\lambda - V)}{E(B-V)}$")
+pt.title("Extinction curve of HDE 251204")
+pt.legend()
+pt.show()
